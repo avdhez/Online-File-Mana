@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="path-nav">
+        <a href="{{ url_for('index') }}">Home</a>
+        {% if current_path %}
+            {% for part in current_path.split('/') %}
+                / <a href="{{ url_for('index', path='/'.join(current_path.split('/')[:loop.index])) }}">{{ part }}</a>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="actions">
+        <form method="post" action="{{ url_for('create_dir') }}" style="display: inline;">
+            <input type="hidden" name="path" value="{{ current_path }}">
+            <input type="text" name="dirname" placeholder="New directory name" required>
+            <button type="submit">Create Directory</button>
+        </form>
+
+        <form method="post" action="{{ url_for('upload_file') }}" enctype="multipart/form-data" style="display: inline;">
+            <input type="hidden" name="path" value="{{ current_path }}">
+            <input type="file" name="file" multiple>
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+
+    <form method="post" action="{{ url_for('zip_files') }}">
+        <input type="hidden" name="path" value="{{ current_path }}">
+        <h2>Directories</h2>
+        {% if directories %}
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Actions</th>
+                </tr>
+                {% for dir in directories %}
+                    <tr>
+                        <td><a href="{{ url_for('index', path=dir.path) }}">{{ dir.name }}</a></td>
+                        <td>
+                            <input type="checkbox" name="items" value="{{ dir.name }}">
+                            <a href="{{ url_for('index', path=dir.path) }}">Open</a>
+                            <a href="{{ url_for('delete') }}" onclick="return confirm('Are you sure?')" 
+                               style="margin-left: 10px;">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No directories</p>
+        {% endif %}
+
+        <h2>Files</h2>
+        {% if files %}
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Size (bytes)</th>
+                    <th>Modified</th>
+                    <th>Actions</th>
+                </tr>
+                {% for file in files %}
+                    <tr>
+                        <td>{{ file.name }}</td>
+                        <td>{{ file.size }}</td>
+                        <td>{{ file.modified|datetime }}</td>
+                        <td class="actions">
+                            <input type="checkbox" name="items" value="{{ file.name }}">
+                            <a href="{{ url_for('download_file', filename=os.path.join(current_path, file.name)) }}">Download</a>
+                            {% if file.name.endswith('.txt') %}
+                                <a href="{{ url_for('edit_file', path=os.path.join(current_path, file.name)) }}">Edit</a>
+                            {% endif %}
+                            {% if file.name.endswith('.zip') %}
+                                <a href="{{ url_for('unzip_file', path=current_path) }}" 
+                                   onclick="event.preventDefault(); document.getElementById('unzip-form-{{ loop.index }}').submit();">
+                                    Unzip
+                                </a>
+                                <form id="unzip-form-{{ loop.index }}" method="post" action="{{ url_for('unzip_file') }}" style="display: none;">
+                                    <input type="hidden" name="path" value="{{ current_path }}">
+                                    <input type="hidden" name="zip_item" value="{{ file.name }}">
+                                </form>
+                            {% endif %}
+                            <a href="{{ url_for('delete') }}" onclick="return confirm('Are you sure?')">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No files</p>
+        {% endif %}
+
+        <div style="margin-top: 20px;">
+            <input type="text" name="zipname" placeholder="archive.zip" required>
+            <button type="submit">Zip Selected Items</button>
+        </div>
+    </form>
+
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+{% endblock %}
