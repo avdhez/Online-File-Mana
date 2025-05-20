@@ -117,7 +117,7 @@ def edit_file():
         with open(full_path, 'w') as f:
             f.write(content)
         flash('File saved successfully', 'success')
-        return redirect(url_for('index', path=os.path.dirname(path))))
+        return redirect(url_for('index', path=os.path.dirname(path)))
     
     try:
         with open(full_path, 'r') as f:
