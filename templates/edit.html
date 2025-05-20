@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Editing: {{ filename }}</h2>
+    <form method="post" action="{{ url_for('edit_file', path=path) }}">
+        <textarea class="editor" name="content">{{ content }}</textarea>
+        <div style="margin-top: 10px;">
+            <button type="submit">Save</button>
+            <a href="{{ url_for('index', path=os.path.dirname(path)) }}" style="margin-left: 10px;">Cancel</a>
+        </div>
+    </form>
+{% endblock %}
